@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atividades da Matéria</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f6fa;
+      margin: 0;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .site-name {
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: #2c3e50;
+      cursor: pointer;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: #ecf0f1;
+      padding: 8px 15px;
+      border-radius: 30px;
+      font-size: 1rem;
+      color: #34495e;
+    }
+
+    #btnSair {
+      background-color: #e74c3c;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+
+    #btnSair:hover {
+      background-color: #c0392b;
+    }
+
+    #btnVoltar {
+      background-color: #2980b9;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    #btnVoltar:hover {
+      background-color: #1f6391;
+    }
+
+    #atividadesList {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .atividade {
+      border-bottom: 1px solid #ddd;
+      padding: 12px 10px;
+      position: relative;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease;
+      max-height: 90px;
+    }
+    .atividade:last-child {
+      border-bottom: none;
+    }
+
+    .atividade.expanded {
+      max-height: 600px; /* bastante espaço para expandir */
+      padding-bottom: 20px;
+    }
+
+    .atividade-titulo {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+      color: #2c3e50;
+    }
+
+    .atividade-descricao {
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    .atividade-foto, .atividade-video {
+      max-width: 100%;
+      border-radius: 6px;
+      margin: 6px 0;
+      display: block;
+    }
+    .atividade-video {
+      max-height: 280px;
+      background: #222;
+    }
+
+    .atividade-links {
+      margin-top: 6px;
+    }
+
+    .atividade-links a {
+      display: inline-block;
+      margin-right: 10px;
+      color: #2980b9;
+      text-decoration: none;
+      word-break: break-word;
+    }
+
+    .atividade-links a:hover {
+      text-decoration: underline;
+    }
+
+    .atividade-nota {
+      margin-top: 8px;
+      font-weight: 600;
+      color: #27ae60;
+    }
+
+    .btn-toggle {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      background-color: #2980b9;
+      color: white;
+      border: none;
+      padding: 5px 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-toggle:hover {
+      background-color: #1f6391;
+    }
+
+    .botao {
+      background-color: #ffffff;
+      color: #009fe4;
+      width: 140px;
+      height: 2.9em;
+      border: #009fe4 0.1em solid;
+      border-radius: 50px;
+      text-align: right;
+      font-size: 16px;
+      transition: all 0.6s ease;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5em;
+      margin: 0.3em 0.2em;
+      padding: 0;
+    }
+
+    .botao:hover {
+      background-color: #009fe4;
+      color: #ffffff;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .botao:active {
+      background-color: #161616;
+      border: #161616 0.1em solid;
+    }
+
+    .botao:active.botao svg {
+      margin: -0.2em 0.6em 1em;
+    }
+
+    .botao svg {
+      width: 1.6em;
+      margin: -0.2em 1.2em 1em;
+      position: absolute;
+      display: flex;
+      transition: all 0.6s ease;
+      left: 0.7em;
+    }
+
+    .botao:hover svg {
+      transform: translateX(5px);
+    }
+
+    .texto { margin:0 2.1em; font-weight:bold; }
+
+    /* Formulário para nova atividade */
+    #formNovaAtividade {
+      margin-top: 0;
+      max-width: 520px;
+      min-width: 370px;
+      min-height: 420px;
+      display: block;
+      position: relative;
+      z-index: 1001;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+      animation: popinShow 0.25s;
+      transition: width 0.2s, min-height 0.2s;
+      background: white;
+      padding: 38px 36px 28px 36px;
+      font-size: 1.08rem;
+      border-radius: 14px;
+    }
+
+    #formNovaAtividade h3 {
+      font-size: 1.35rem;
+      margin-bottom: 18px;
+      margin-top: 0;
+      color: #27ae60;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+
+    #formNovaAtividade label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: 600;
+      margin-top: 18px;
+      font-size: 1.07rem;
+      color: #2c3e50;
+      letter-spacing: 0.1px;
+    }
+
+    #formNovaAtividade input[type="text"],
+    #formNovaAtividade textarea,
+    #formNovaAtividade input[type="number"],
+    #formNovaAtividade input[type="url"] {
+      width: 100%;
+      padding: 11px 10px;
+      border-radius: 7px;
+      border: 1.2px solid #bfc9d1;
+      font-size: 1.08rem;
+      resize: vertical;
+      margin-bottom: 2px;
+      background: #f8fafc;
+      box-sizing: border-box;
+      transition: border 0.2s;
+    }
+    #formNovaAtividade input[type="text"]:focus,
+    #formNovaAtividade textarea:focus,
+    #formNovaAtividade input[type="number"]:focus,
+    #formNovaAtividade input[type="url"]:focus {
+      border: 1.5px solid #27ae60;
+      outline: none;
+      background: #fff;
+    }
+
+    #formNovaAtividade textarea {
+      height: 110px;
+      min-height: 70px;
+      max-height: 220px;
+    }
+
+    #formNovaAtividade input[type="file"] {
+      margin-top: 6px;
+      font-size: 1rem;
+      background: #f8fafc;
+      border-radius: 7px;
+      padding: 7px 0;
+      width: 100%;
+      border: none;
+    }
+
+    #formNovaAtividade .checkbox-container {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.05rem;
+    }
+
+    #formNovaAtividade .checkbox-container input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #27ae60;
+    }
+
+    #notaAtividadeContainer {
+      margin-top: 10px;
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        max-height 0.35s cubic-bezier(.4,1.3,.6,1),
+        opacity 0.25s,
+        padding 0.25s;
+      will-change: max-height, opacity, padding;
+      padding-top: 0;
+      padding-bottom: 0;
+      display: block;
+    }
+    #notaAtividadeContainer.show {
+      max-height: 120px;
+      opacity: 1;
+      pointer-events: auto;
+      padding-top: 10px;
+      padding-bottom: 10px;
+      transition:
+        max-height 0.35s cubic-bezier(.4,1.3,.6,1),
+        opacity 0.25s,
+        padding 0.25s;
+    }
+
+    #formNovaAtividade .botoes-popin {
+      display: flex;
+      gap: 12px;
+      margin-top: 26px;
+      justify-content: flex-end;
+    }
+    #formNovaAtividade .botoes-popin button[type="button"],
+    #formNovaAtividade .botoes-popin button[type="submit"] {
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 11px 22px;
+      font-size: 1.08rem;
+      transition: background 0.2s;
+      margin-top: 0;
+    }
+    #formNovaAtividade .botoes-popin button[type="button"]:hover,
+    #formNovaAtividade .botoes-popin button[type="submit"]:hover {
+      background: #1e8449;
+    }
+    #formNovaAtividade .botoes-popin button#btnCancelarPopin {
+      background: #e74c3c;
+      color: white;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    #formNovaAtividade .botoes-popin button#btnCancelarPopin:hover {
+      background: #c0392b;
+    }
+
+    .erro {
+      color: #e74c3c;
+      font-size: 1rem;
+      margin-top: 8px;
+      margin-bottom: 0;
+      text-align: right;
+    }
+
+    /* Wizard steps bar */
+    .wizard-steps {
+      display: flex;
+      align-items: center;
+      margin-bottom: 18px;
+      margin-top: 0;
+      gap: 8px;
+      user-select: none;
+    }
+    .wizard-step {
+      flex: 1;
+      height: 7px;
+      border-radius: 4px;
+      background: #e0e0e0;
+      transition: background 0.25s;
+      position: relative;
+    }
+    .wizard-step.active {
+      background: #27ae60;
+    }
+    .wizard-step-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.04rem;
+      color: #888;
+      margin-bottom: 10px;
+      margin-top: -8px;
+      padding: 0 2px;
+      letter-spacing: 0.1px;
+    }
+    /* Wizard pages */
+    .wizard-page {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.25s;
+      min-height: 180px;
+    }
+    .wizard-page.active {
+      display: block;
+      opacity: 1;
+      animation: fadeInWizard 0.25s;
+    }
+    @keyframes fadeInWizard {
+      from { opacity: 0; transform: translateX(30px);}
+      to { opacity: 1; transform: translateX(0);}
+    }
+
+    /* Pop-in/modal overlay */
+    #popinOverlay {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0; right: 0; bottom: 0;
+      background: rgba(44,62,80,0.35);
+      justify-content: center;
+      align-items: center;
+    }
+
+    #btnFecharPopin {
+      position: absolute;
+      right: 18px;
+      top: 14px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #888;
+      cursor: pointer;
+      font-weight: bold;
+      z-index: 10;
+      transition: color 0.2s;
+    }
+    #btnFecharPopin:hover {
+      color: #e74c3c;
+    }
+
+    .btn-excluir-atividade {
+      display: block;
+      margin: 18px 0 0 auto;
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 22px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      width: fit-content;
+    }
+    .btn-excluir-atividade:hover {
+      background: #c0392b;
+    }
+    /* Pop-up de confirmação de exclusão */
+    #popupExcluirOverlay {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0; top: 0; right: 0; bottom: 0;
+      background: rgba(44,62,80,0.35);
+      justify-content: center;
+      align-items: center;
+    }
+    #popupExcluirBox {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+      padding: 32px 28px 22px 28px;
+      min-width: 320px;
+      max-width: 95vw;
+      text-align: center;
+      position: relative;
+      animation: popinShow 0.22s;
+    }
+    #popupExcluirBox h4 {
+      margin-top: 0;
+      color: #e74c3c;
+      font-size: 1.18rem;
+      margin-bottom: 18px;
+    }
+    #popupExcluirBox label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 1.04rem;
+    }
+    #popupExcluirBox input[type="password"] {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 7px;
+      border: 1.2px solid #bfc9d1;
+      font-size: 1.05rem;
+      margin-bottom: 12px;
+      background: #f8fafc;
+      box-sizing: border-box;
+      transition: border 0.2s;
+    }
+    #popupExcluirBox input[type="password"]:focus {
+      border: 1.5px solid #e74c3c;
+      outline: none;
+      background: #fff;
+    }
+    #popupExcluirBox .botoes-excluir {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+    #popupExcluirBox button {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 9px 18px;
+      font-size: 1.01rem;
+      transition: background 0.2s;
+    }
+    #popupExcluirBox button:hover {
+      background: #c0392b;
+    }
+    #popupExcluirBox button.cancelar {
+      background: #888;
+      color: #fff;
+    }
+    #popupExcluirBox button.cancelar:hover {
+      background: #555;
+    }
+    #popupExcluirErro {
+      color: #e74c3c;
+      font-size: 0.98rem;
+      margin-top: 7px;
+      margin-bottom: 0;
+      text-align: right;
+      min-height: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="site-name" onclick="window.location.href='dashboard.html'">SesiSaiba+</div>
+    <div class="user-info">
+      <span id="userNameEmail">Carregando...</span>
+      <button id="btnSair" class="botao" type="button">
+        <svg class="w-6 h-6" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" stroke-linejoin="round" stroke-linecap="round"></path>
+        </svg>
+        <span class="texto">Sair</span>
+      </button>
+    </div>
+  </header>
+
+  <button id="btnVoltar" class="botao" type="button">
+    <svg class="w-6 h-6" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" stroke-linejoin="round" stroke-linecap="round"></path>
+    </svg>
+    <span class="texto">Voltar</span>
+  </button>
+
+  <h2 id="tituloMateria">Carregando matéria...</h2>
+
+  <button id="btnAdicionarAtividade" class="botao" style="display:none;" type="button">
+    <svg class="w-6 h-6" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" stroke-linejoin="round" stroke-linecap="round"></path>
+    </svg>
+    <span class="texto">Adicionar</span>
+  </button>
+
+  <div id="atividadesList">Carregando atividades...</div>
+
+  <!-- Pop-up de exclusão de atividade -->
+  <div id="popupExcluirOverlay">
+    <div id="popupExcluirBox">
+      <h4>Excluir Atividade</h4>
+      <div id="popupExcluirMensagem">Confirme sua senha para excluir esta atividade:</div>
+      <label for="popupExcluirSenha">Senha</label>
+      <input type="password" id="popupExcluirSenha" autocomplete="current-password" />
+
+      <div class="botoes-excluir">
+        <button id="popupExcluirConfirmar" type="button" class="botao">
+          <svg class="w-6 h-6" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" stroke-linejoin="round" stroke-linecap="round"></path>
+          </svg>
+          <span class="texto">Excluir</span>
+        </button>
+        <button id="popupExcluirCancelar" type="button" class="botao">
+          <svg class="w-6 h-6" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" stroke-linejoin="round" stroke-linecap="round"></path>
+          </svg>
+          <span class="texto">Cancelar</span>
+        </button>
+      </div>
+      <div id="popupExcluirErro"></div>
+    </div>
+  </div>
+
+  <!-- Pop-in/modal para nova atividade -->
+  <div id="popinOverlay">
+    <form id="formNovaAtividade" enctype="multipart/form-data" autocomplete="off">
+      <button id="btnFecharPopin" type="button" title="Fechar">&times;</button>
+      <div class="wizard-steps">
+        <div class="wizard-step" id="wizardStep1"></div>
+        <div class="wizard-step" id="wizardStep2"></div>
+      </div>
+      <div class="wizard-step-labels">
+        <span style="flex:1;text-align:left;">Informações</span>
+        <span style="flex:1;text-align:right;">Opções</span>
+      </div>
+      <!-- Wizard Page 1 -->
+      <div class="wizard-page" id="wizardPage1">
+        <h3>Nova Atividade</h3>
+        <label for="tituloAtividade">Título *</label>
+        <input type="text" id="tituloAtividade" required autocomplete="off" />
+
+        <label for="descricaoAtividade">Descrição *</label>
+        <textarea id="descricaoAtividade" required autocomplete="off"></textarea>
+
+        <label for="dataPostada">Data da Postagem *</label>
+        <input type="date" id="dataPostada" required />
+
+        <label for="dataDisponivelAte" style="margin-top:18px;">Prazo de Entrega *</label>
+        <input type="date" id="dataDisponivelAte" required />
+
+        <div class="botoes-popin">
+          <button type="button" id="btnProximoWizard" class="botao">
+            <svg class="w-6 h-6" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" stroke-linejoin="round" stroke-linecap="round"></path>
+            </svg>
+            <span class="texto">Próximo</span>
+          </button>
+        </div>
+      </div>
+      <!-- Wizard Page 2 -->
+      <div class="wizard-page" id="wizardPage2">
+        <label for="arquivoAtividade">Upload de arquivo (imagem, vídeo ou documento)</label>
+        <input type="file" id="arquivoAtividade" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt,.mp4,.webm,.ogg"/>
+
+        <label for="linksAtividade">Links de acesso (separe por vírgula)</label>
+        <input type="text" id="linksAtividade" placeholder="https://link1.com, https://link2.com" />
+
+        <div class="checkbox-container" style="margin-bottom:0;">
+          <input type="checkbox" id="valerNota" name="valerNota" value="true">
+          <label for="valerNota">Atividade vale nota</label>
+        </div>
+
+        <div id="notaAtividadeContainer" style="display:none;">
+          <label for="notaAtividade">Nota (número)</label>
+          <input type="number" id="notaAtividade" min="0" step="0.1" />
+        </div>
+
+        <div class="botoes-popin">
+          <button type="button" id="btnVoltarWizard" class="botao">
+            <svg class="w-6 h-6" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" stroke-linejoin="round" stroke-linecap="round"></path>
+            </svg>
+            <span class="texto">Voltar</span>
+          </button>
+          <button type="submit" class="botao">
+            <svg class="w-6 h-6" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" stroke-linejoin="round" stroke-linecap="round"></path>
+            </svg>
+            <span class="texto">Enviar</span>
+          </button>
+          <button type="button" id="btnCancelarPopin" class="botao">
+            <svg class="w-6 h-6" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" stroke-linejoin="round" stroke-linecap="round"></path>
+            </svg>
+            <span class="texto">Cancelar</span>
+          </button>
+        </div>
+        <div id="formErro" class="erro" style="display:none;"></div>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem('usuario'));
+    if (!user) window.location.href = 'index.html';
+
+    const params = new URLSearchParams(window.location.search);
+    const materiaId = params.get('materiaId');
+    if (!materiaId) {
+      alert('Matéria inválida!');
+      window.location.href = 'dashboard.html';
+    }
+
+    document.getElementById('userNameEmail').innerText = `${user.nome || user.email}`;
+
+    document.getElementById('btnSair').addEventListener('click', () => {
+      localStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    });
+
+    document.getElementById('btnVoltar').addEventListener('click', () => {
+      window.location.href = 'dashboard.html';
+    });
+
+    const btnAdicionarAtividade = document.getElementById('btnAdicionarAtividade');
+    const popinOverlay = document.getElementById('popinOverlay');
+    const formNovaAtividade = document.getElementById('formNovaAtividade');
+    const formErro = document.getElementById('formErro');
+    const btnFecharPopin = document.getElementById('btnFecharPopin');
+    const btnCancelarPopin = document.getElementById('btnCancelarPopin');
+    const checkboxValerNota = document.getElementById('valerNota');
+    const notaAtividadeContainer = document.getElementById('notaAtividadeContainer');
+    const btnProximoWizard = document.getElementById('btnProximoWizard');
+    const btnVoltarWizard = document.getElementById('btnVoltarWizard');
+    const wizardPage1 = document.getElementById('wizardPage1');
+    const wizardPage2 = document.getElementById('wizardPage2');
+    const wizardStep1 = document.getElementById('wizardStep1');
+    const wizardStep2 = document.getElementById('wizardStep2');
+
+    // Wizard state
+    let wizardStep = 1;
+    function showWizardStep(step) {
+      wizardStep = step;
+      wizardPage1.classList.toggle('active', step === 1);
+      wizardPage2.classList.toggle('active', step === 2);
+      wizardStep1.classList.toggle('active', step === 1);
+      wizardStep2.classList.toggle('active', step === 2);
+    }
+    showWizardStep(1);
+
+    // Wizard navigation
+    btnProximoWizard.addEventListener('click', () => {
+      // Validação do passo 1
+      const titulo = document.getElementById('tituloAtividade').value.trim();
+      const descricao = document.getElementById('descricaoAtividade').value.trim();
+      if (!titulo || !descricao) {
+        formErro.textContent = 'Título e descrição são obrigatórios.';
+        formErro.style.display = 'block';
+        return;
+      }
+      formErro.style.display = 'none';
+      showWizardStep(2);
+    });
+    btnVoltarWizard.addEventListener('click', () => {
+      showWizardStep(1);
+      formErro.style.display = 'none';
+    });
+
+    // Exibir campo nota só se "vale nota" estiver marcado, com animação
+    checkboxValerNota.addEventListener('change', () => {
+      if (checkboxValerNota.checked) {
+        notaAtividadeContainer.style.display = 'block';
+        // Força reflow para garantir a animação
+        void notaAtividadeContainer.offsetWidth;
+        notaAtividadeContainer.classList.add('show');
+      } else {
+        notaAtividadeContainer.classList.remove('show');
+        // Após animação, esconde o elemento
+        setTimeout(() => {
+          if (!checkboxValerNota.checked) {
+            notaAtividadeContainer.style.display = 'none';
+          }
+        }, 400);
+      }
+    });
+
+    if (user.role === 'professor') {
+      btnAdicionarAtividade.style.display = 'inline-block';
+    }
+
+    // Abrir pop-in
+    btnAdicionarAtividade.addEventListener('click', () => {
+      popinOverlay.style.display = 'flex';
+      btnAdicionarAtividade.disabled = true;
+      formNovaAtividade.reset();
+      formErro.style.display = 'none';
+      formErro.textContent = '';
+      notaAtividadeContainer.classList.remove('show');
+      notaAtividadeContainer.style.display = 'none';
+      showWizardStep(1);
+    });
+
+    // Fechar pop-in
+    function fecharPopin() {
+      popinOverlay.style.display = 'none';
+      btnAdicionarAtividade.disabled = false;
+      showWizardStep(1);
+    }
+    btnFecharPopin.addEventListener('click', fecharPopin);
+    btnCancelarPopin.addEventListener('click', fecharPopin);
+
+    // Fechar ao clicar fora do form
+    popinOverlay.addEventListener('click', (e) => {
+      if (e.target === popinOverlay) fecharPopin();
+    });
+
+    // Função para carregar nome da matéria
+    function carregarNomeMateria() {
+      fetch(`http://localhost:3000/materias`)
+        .then(res => {
+          if (!res.ok) throw new Error('Erro ao buscar matérias');
+          return res.json();
+        })
+        .then(materias => {
+          const materia = materias.find(m => m.id == materiaId);
+          if (!materia) {
+            document.getElementById('tituloMateria').innerText = 'Matéria não encontrada.';
+            return;
+          }
+          document.getElementById('tituloMateria').innerText = materia.nome;
+        })
+        .catch(err => {
+          document.getElementById('tituloMateria').innerText = 'Erro ao carregar matéria.';
+          console.error(err);
+        });
+    }
+
+    // Função para abreviar descrição (4 primeiras palavras)
+    function abreviarDescricao(texto) {
+      const palavras = texto.split(/\s+/);
+      if (palavras.length <= 4) return texto;
+      return palavras.slice(0,4).join(' ') + '...';
+    }
+
+    // Função para criar elementos para links
+    function criarLinksElement(links) {
+      if (!links || links.length === 0) return '';
+      const div = document.createElement('div');
+      div.className = 'atividade-links';
+      links.forEach(link => {
+        const a = document.createElement('a');
+        a.href = link.trim();
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = link.trim();
+        div.appendChild(a);
+      });
+      return div;
+    }
+
+    // Função para formatar data para dd/mm/yyyy
+    function formatarDataBR(dataStr) {
+      if (!dataStr) return '';
+      const data = new Date(dataStr);
+      if (isNaN(data.getTime())) return '';
+      return data.toLocaleDateString('pt-BR');
+    }
+
+    // Exclusão de atividade - variáveis do popup
+    const popupExcluirOverlay = document.getElementById('popupExcluirOverlay');
+    const popupExcluirSenha = document.getElementById('popupExcluirSenha');
+    const popupExcluirConfirmar = document.getElementById('popupExcluirConfirmar');
+    const popupExcluirCancelar = document.getElementById('popupExcluirCancelar');
+    const popupExcluirErro = document.getElementById('popupExcluirErro');
+    let atividadeParaExcluirId = null;
+
+    // Função para abrir popup de exclusão
+    function abrirPopupExcluir(atividadeId) {
+      atividadeParaExcluirId = atividadeId;
+      popupExcluirSenha.value = '';
+      popupExcluirErro.textContent = '';
+      popupExcluirOverlay.style.display = 'flex';
+      popupExcluirSenha.focus();
+    }
+    // Fechar popup
+    function fecharPopupExcluir() {
+      popupExcluirOverlay.style.display = 'none';
+      atividadeParaExcluirId = null;
+    }
+    popupExcluirCancelar.addEventListener('click', fecharPopupExcluir);
+    popupExcluirOverlay.addEventListener('click', (e) => {
+      if (e.target === popupExcluirOverlay) fecharPopupExcluir();
+    });
+
+    // Confirmar exclusão
+    popupExcluirConfirmar.addEventListener('click', async () => {
+      popupExcluirErro.textContent = '';
+      const senha = popupExcluirSenha.value.trim();
+      if (!senha) {
+        popupExcluirErro.textContent = 'Digite sua senha.';
+        popupExcluirSenha.focus();
+        return;
+      }
+      if (!atividadeParaExcluirId) return;
+
+      try {
+        const res = await fetch(`http://localhost:3000/materias/${materiaId}/atividades/${atividadeParaExcluirId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user.token}`
+          },
+          body: JSON.stringify({ senha })
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          popupExcluirErro.textContent = errorData.message || 'Erro ao excluir atividade.';
+          return;
+        }
+
+        fecharPopupExcluir();
+        carregarAtividades();
+      } catch (err) {
+        popupExcluirErro.textContent = 'Erro ao excluir atividade. Verifique sua conexão.';
+        console.error(err);
+      }
+    });
+
+    // Função para carregar atividades
+    function carregarAtividades() {
+      fetch(`http://localhost:3000/materias/${materiaId}/atividades`)
+        .then(res => {
+          if (!res.ok) throw new Error('Erro ao buscar atividades');
+          return res.json();
+        })
+        .then(atividades => {
+          const container = document.getElementById('atividadesList');
+          container.innerHTML = '';
+
+          if (!atividades || atividades.length === 0) {
+            container.innerText = 'Nenhuma atividade cadastrada.';
+            return;
+          }
+
+          atividades.forEach((atividade, i) => {
+            const div = document.createElement('div');
+            div.className = 'atividade';
+            div.dataset.index = i;
+
+            // Datas
+            const datasDiv = document.createElement('div');
+            datasDiv.className = 'atividade-info-datas';
+            let dataPostada = '';
+            let dataDisponivelAte = '';
+
+            if (dataPostada) {
+              datasDiv.innerHTML += `<span>Postada em: <b>${dataPostada}</b></span>`;
+            }
+            if (dataDisponivelAte) {
+              datasDiv.innerHTML += `<span>Entrega até: <b>${dataDisponivelAte}</b></span>`;
+            }
+
+            if (datasDiv.innerHTML) {
+              div.appendChild(datasDiv);
+            }
+
+            // Mostrar título em destaque
+            const titulo = document.createElement('div');
+            titulo.className = 'atividade-titulo';
+            titulo.textContent = atividade.titulo || '(Sem título)';
+
+            // Descrição abreviada
+            const descricao = document.createElement('div');
+            descricao.className = 'atividade-descricao';
+            descricao.textContent = abreviarDescricao(atividade.descricao || '');
+
+            // Botão de expandir/contrair
+            const btnToggle = document.createElement('button');
+            btnToggle.className = 'btn-toggle';
+            btnToggle.textContent = 'Mostrar mais';
+
+            btnToggle.addEventListener('click', () => {
+              const expanded = div.classList.toggle('expanded');
+
+              if (expanded) {
+                descricao.textContent = atividade.descricao || '';
+
+                // Mostrar datas
+                if (!div.querySelector('.atividade-datas')) {
+                  const datasDiv = document.createElement('div');
+                  datasDiv.className = 'atividade-datas';
+                  datasDiv.style.marginTop = '10px';
+                  datasDiv.innerHTML = `
+                    <div><b>Postada em:</b> ${formatarDataBR(atividade.dataPostada)}</div>
+                    <div><b>Prazo de entrega:</b> ${formatarDataBR(atividade.dataDisponivelAte)}</div>
+                  `;
+                  div.appendChild(datasDiv);
+                }
+
+                // Mostrar arquivo (imagem, vídeo ou link para download)
+                if (atividade.arquivo) {
+                  if (/\.(jpg|jpeg|png|gif)$/i.test(atividade.arquivo)) {
+                    // Small preview box
+                    const imgContainer = document.createElement('div');
+                    imgContainer.style.position = 'relative';
+                    imgContainer.style.display = 'inline-block';
+                    imgContainer.style.border = '1px solid #ddd';
+                    imgContainer.style.borderRadius = '8px';
+                    imgContainer.style.overflow = 'hidden';
+                    imgContainer.style.width = '120px';
+                    imgContainer.style.height = '80px';
+                    imgContainer.style.cursor = 'pointer';
+                    imgContainer.style.marginTop = '10px';
+
+                    const img = document.createElement('img');
+                    img.src = `http://localhost:3000${atividade.arquivo}`; // Ensure correct file path
+                    img.alt = 'Arquivo da atividade';
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    imgContainer.appendChild(img);
+
+                    // Enlarge image on click
+                    imgContainer.addEventListener('click', () => {
+                      const overlay = document.createElement('div');
+                      overlay.style.position = 'fixed';
+                      overlay.style.top = '0';
+                      overlay.style.left = '0';
+                      overlay.style.width = '100vw';
+                      overlay.style.height = '100vh';
+                      overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                      overlay.style.display = 'flex';
+                      overlay.style.justifyContent = 'center';
+                      overlay.style.alignItems = 'center';
+                      overlay.style.zIndex = '1000';
+
+                      const enlargedImg = document.createElement('img');
+                      enlargedImg.src = `http://localhost:3000${atividade.arquivo}`;
+                      enlargedImg.alt = 'Arquivo da atividade';
+                      enlargedImg.style.maxWidth = '90%';
+                      enlargedImg.style.maxHeight = '90%';
+                      enlargedImg.style.borderRadius = '8px';
+                      overlay.appendChild(enlargedImg);
+
+                      // Download button
+                      const downloadBtn = document.createElement('a');
+                      downloadBtn.href = `http://localhost:3000${atividade.arquivo}`;
+                      downloadBtn.download = '';
+                      downloadBtn.textContent = 'Baixar imagem';
+                      downloadBtn.style.position = 'absolute';
+                      downloadBtn.style.bottom = '20px';
+                      downloadBtn.style.backgroundColor = '#27ae60';
+                      downloadBtn.style.color = 'white';
+                      downloadBtn.style.padding = '10px 20px';
+                      downloadBtn.style.borderRadius = '8px';
+                      downloadBtn.style.textDecoration = 'none';
+                      downloadBtn.style.fontWeight = 'bold';
+                      downloadBtn.style.cursor = 'pointer';
+                      overlay.appendChild(downloadBtn);
+
+                      // Close overlay on click
+                      overlay.addEventListener('click', () => {
+                        document.body.removeChild(overlay);
+                      });
+
+                      document.body.appendChild(overlay);
+                    });
+
+                    div.appendChild(imgContainer);
+                  } else if (/\.(mp4|webm|ogg)$/i.test(atividade.arquivo)) {
+                    const video = document.createElement('video');
+                    video.src = `http://localhost:3000${atividade.arquivo}`;
+                    video.controls = true;
+                    video.style.maxWidth = '100%';
+                    video.style.borderRadius = '8px';
+                    video.style.marginTop = '10px';
+                    div.appendChild(video);
+                  } else {
+                    const link = document.createElement('a');
+                    link.href = `http://localhost:3000${atividade.arquivo}`;
+                    link.textContent = 'Baixar arquivo';
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.style.display = 'block';
+                    link.style.marginTop = '10px';
+                    link.style.color = '#2980b9';
+                    link.style.textDecoration = 'none';
+                    div.appendChild(link);
+                  }
+                }
+
+                // Mostrar links adicionais
+                if (atividade.links && atividade.links.length > 0) {
+                  if (!div.querySelector('.atividade-links')) {
+                    const linksDiv = criarLinksElement(atividade.links);
+                    linksDiv.style.marginTop = '10px';
+                    div.appendChild(linksDiv);
+                  }
+                }
+
+                // Mostrar nota se valer
+                if (atividade.valeNota && atividade.nota != null) {
+                  if (!div.querySelector('.atividade-nota')) {
+                    const notaDiv = document.createElement('div');
+                    notaDiv.className = 'atividade-nota';
+                    notaDiv.textContent = `Nota: ${atividade.nota}`;
+                    notaDiv.style.marginTop = '10px';
+                    div.appendChild(notaDiv);
+                  }
+                }
+
+                // Botão de excluir (apenas para professor)
+                if (user.role === 'professor' && atividade.id) {
+                  if (!div.querySelector('.btn-excluir-atividade')) {
+                    const btnExcluir = document.createElement('button');
+                    btnExcluir.className = 'botao btn-excluir-atividade';
+                    btnExcluir.type = 'button';
+                    btnExcluir.innerHTML = `
+                      <svg class="w-6 h-6" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" stroke-linejoin="round" stroke-linecap="round"></path>
+                      </svg>
+                      <span class="texto">Excluir</span>
+                    `;
+                    btnExcluir.addEventListener('click', (e) => {
+                      e.stopPropagation();
+                      abrirPopupExcluir(atividade.id);
+                    });
+                    div.appendChild(btnExcluir);
+                  }
+                }
+
+                btnToggle.textContent = 'Mostrar menos';
+              } else {
+                descricao.textContent = abreviarDescricao(atividade.descricao || '');
+
+                // Remover datas, arquivos, links, nota e botão de excluir ao contrair
+                const datasDiv = div.querySelector('.atividade-datas');
+                if (datasDiv) div.removeChild(datasDiv);
+
+                const img = div.querySelector('img');
+                if (img) div.removeChild(img);
+
+                const video = div.querySelector('video');
+                if (video) div.removeChild(video);
+
+                const link = div.querySelector('a');
+                if (link) div.removeChild(link);
+
+                const linksDiv = div.querySelector('.atividade-links');
+                if (linksDiv) div.removeChild(linksDiv);
+
+                const notaDiv = div.querySelector('.atividade-nota');
+                if (notaDiv) div.removeChild(notaDiv);
+
+                const btnExcluir = div.querySelector('.btn-excluir-atividade');
+                if (btnExcluir) div.removeChild(btnExcluir);
+
+                btnToggle.textContent = 'Mostrar mais';
+              }
+            });
+
+            div.appendChild(titulo);
+            div.appendChild(descricao);
+            div.appendChild(btnToggle);
+
+            container.appendChild(div);
+          });
+        })
+        .catch(err => {
+          document.getElementById('atividadesList').innerText = 'Erro ao carregar atividades.';
+          console.error(err);
+        });
+    }
+
+    carregarNomeMateria();
+    carregarAtividades();
+
+    // Lógica para salvar nova atividade
+    formNovaAtividade.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      formErro.style.display = 'none';
+      formErro.textContent = '';
+
+      const titulo = document.getElementById('tituloAtividade').value.trim();
+      const descricao = document.getElementById('descricaoAtividade').value.trim();
+      const dataPostada = document.getElementById('dataPostada').value;
+      const dataDisponivelAte = document.getElementById('dataDisponivelAte').value;
+      const arquivoInput = document.getElementById('arquivoAtividade');
+      const linksInput = document.getElementById('linksAtividade');
+      const links = linksInput.value
+        ? linksInput.value.split(',').map(l => l.trim()).filter(l => l)
+        : [];
+      const valeNota = checkboxValerNota.checked;
+      const nota = document.getElementById('notaAtividade').value;
+
+      if (!titulo || !descricao || !dataPostada || !dataDisponivelAte) {
+        formErro.textContent = 'Preencha todos os campos obrigatórios.';
+        formErro.style.display = 'block';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('titulo', titulo);
+      formData.append('descricao', descricao);
+      formData.append('dataPostada', dataPostada);
+      formData.append('dataDisponivelAte', dataDisponivelAte);
+      if (arquivoInput && arquivoInput.files && arquivoInput.files.length > 0) {
+        formData.append('arquivo', arquivoInput.files[0]);
+      }
+      // Adiciona campos opcionais
+      formData.append('valeNota', valeNota ? 'true' : 'false');
+      if (valeNota && nota !== '') {
+        formData.append('nota', nota);
+      }
+      if (links.length > 0) {
+        // Envia como JSON string para o backend
+        formData.append('links', JSON.stringify(links));
+      }
+
+      try {
+        const res = await fetch(`http://localhost:3000/materias/${materiaId}/atividades`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Authorization': `Bearer ${user.token}`
+          }
+        });
+
+        if (!res.ok) {
+          const errMsg = await res.json();
+          throw new Error(errMsg.error || 'Erro ao salvar atividade');
+        }
+
+        formNovaAtividade.reset();
+        fecharPopin();
+        carregarAtividades();
+      } catch (error) {
+        formErro.textContent = error.message;
+        formErro.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

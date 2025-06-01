@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f6fa;
+      margin: 0;
+    }
+
+    /* Cabeçalho */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .site-name {
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: #2c3e50;
+      cursor: pointer;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: #ecf0f1;
+      padding: 8px 15px;
+      border-radius: 30px;
+      font-size: 1rem;
+      color: #34495e;
+    }
+
+    #btnSair {
+      background-color: #e74c3c;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+
+    #btnSair:hover {
+      background-color: #c0392b;
+    }
+
+    #btnAdicionarMateria {
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+      margin-bottom: 20px;
+    }
+
+    #btnAdicionarMateria:hover {
+      background-color: #1e8449;
+    }
+
+    /* Conteúdo */
+    #listaMaterias {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .materia-card {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .materia-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .materia-card span {
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .materia-card button {
+      background-color: #2980b9;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    .materia-card button:hover {
+      background-color: #1f6391;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="site-name" onclick="window.location.href='dashboard.html'">SesiSaiba+</div>
+    <div class="user-info">
+      <span id="userNameEmail">Carregando...</span>
+      <button id="btnSair">Sair</button>
+    </div>
+  </header>
+
+  <button id="btnAdicionarMateria" style="display:none;">Adicionar Matéria</button>
+
+  <div id="listaMaterias">Carregando matérias...</div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem('usuario'));
+    if (!user) window.location.href = 'index.html';
+
+    document.getElementById('userNameEmail').innerText = `${user.nome || user.email}`;
+
+    document.getElementById('btnSair').addEventListener('click', () => {
+      localStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    });
+
+    const listaMaterias = document.getElementById('listaMaterias');
+    const btnAdicionarMateria = document.getElementById('btnAdicionarMateria');
+
+    if (user.role === 'professor') {
+      btnAdicionarMateria.style.display = 'inline-block';
+    }
+
+    function listarMaterias() {
+      fetch('http://localhost:3000/materias')
+        .then(res => {
+          if (!res.ok) throw new Error('Erro ao buscar matérias');
+          return res.json();
+        })
+        .then(materias => {
+          listaMaterias.innerHTML = '';
+          materias.forEach((materia, index) => {
+            const card = document.createElement('div');
+            card.className = 'materia-card';
+
+            const span = document.createElement('span');
+            span.textContent = materia.nome;
+
+            const btnAbrir = document.createElement('button');
+            btnAbrir.textContent = 'Abrir';
+            btnAbrir.addEventListener('click', () => {
+              window.location.href = `atividades.html?materiaId=${materia.id}`;
+            });
+
+            card.appendChild(span);
+            card.appendChild(btnAbrir);
+            listaMaterias.appendChild(card);
+          });
+        })
+        .catch(err => {
+          listaMaterias.innerHTML = 'Erro ao carregar matérias.';
+          console.error(err);
+        });
+    }
+
+    btnAdicionarMateria.addEventListener('click', () => {
+      const nomeMateria = prompt('Digite o nome da nova matéria:');
+      if (!nomeMateria) return;
+
+      fetch('http://localhost:3000/materias', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: JSON.stringify({ nome: nomeMateria, role: user.role })
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Erro ao adicionar matéria');
+          return res.json();
+        })
+        .then(() => {
+          listarMaterias();
+        })
+        .catch(err => {
+          alert('Erro ao adicionar matéria.');
+          console.error(err);
+        });
+    });
+
+    listarMaterias();
+  </script>
+
+</body>
+</html>
