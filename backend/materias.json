@@ -1,8 +1,23 @@
 [
-  {
+    {
     "id": 1,
     "nome": "Matemática",
-    "atividades": []
+    "atividades": [
+      {
+        "id": 1,
+        "titulo": "Título Teste",
+        "descricao": "Descrição Teste",
+        "dataPostada": "2025-06-01",
+        "dataDisponivelAte": "2025-06-01",
+        "arquivo": "/uploads/Tech-1748828112083.jpg",
+        "comentarios": [],
+        "links": [
+          "https://chatgpt.com/"
+        ],
+        "valeNota": true,
+        "nota": "10"
+      }
+    ]
   },
   {
     "id": 2,
