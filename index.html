@@ -1,27 +1,3 @@
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyAy6cMYSO-l7tIUgFBtH2cYt2DAC_OBZ1s",
-    authDomain: "sesisaibamais.firebaseapp.com",
-    projectId: "sesisaibamais",
-    storageBucket: "sesisaibamais.firebasestorage.app",
-    messagingSenderId: "425803475445",
-    appId: "1:425803475445:web:cb47c8f9acb328d0a858bc",
-    measurementId: "G-7YGL7YFERM"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -50,8 +26,7 @@
     .formulario-login h2 {
       text-align: center;
       margin-bottom:20px;
-      /* color:rgba(0,0,0,0.5); */
-      color: #007cff; /* Cor azul igual ao Sesi Saiba+ do dashboard */
+      color: #007cff;
       letter-spacing: 1px;
       font-weight: bold;
     }
@@ -68,7 +43,8 @@
     .formulario-login input[type="text"]:focus , .formulario-login input[type="password"]:focus{
       border-bottom:2px solid rgba(0,0,0,0.9);
     }
-    .formulario-login input[type="submit"]{
+    .formulario-login input[type="submit"],
+    .formulario-login button {
       background:rgba(0, 124, 255);
       opacity:0.9;
       border:none;
@@ -76,12 +52,16 @@
       color:white;
       font-size:1em;
       cursor:pointer;
+      padding: 10px;
+      width: 100%;
     }
-    .formulario-login input[type="submit"]:hover{
+    .formulario-login input[type="submit"]:hover,
+    .formulario-login button:hover {
       opacity:1;
       transition:.2s;
     }
-    .formulario-login input[type="submit"]:active{
+    .formulario-login input[type="submit"]:active,
+    .formulario-login button:active {
       transform:scale(0.95);
     }
     .formulario-login a{
@@ -111,79 +91,51 @@
       .formulario-login { width:95%; }
     }
   </style>
-</head>
-<body>
-  <form class="formulario-login" id="loginForm" action="#" method="post">
-    <h2>Sesi Saiba+</h2>
-    <div id="errorMsg" class="error"></div>
-    <input type="text" name="usuario" id="usuario" placeholder="Usuário" required />
-    <input type="password" name="senha" id="senha" placeholder="Senha" required />
-    <button onclick="login()">Entrar</button>
 
-  </form>
-  <script>
-    const form = document.getElementById('loginForm');
-    const errorMsg = document.getElementById('errorMsg');
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    const firebaseConfig = {
+      apiKey: "AIzaSyAy6cMYSO-l7tIUgFBtH2cYt2DAC_OBZ1s",
+      authDomain: "sesisaibamais.firebaseapp.com",
+      projectId: "sesisaibamais",
+      storageBucket: "sesisaibamais.appspot.com",
+      messagingSenderId: "425803475445",
+      appId: "1:425803475445:web:cb47c8f9acb328d0a858bc",
+      measurementId: "G-7YGL7YFERM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.login = () => {
+      const email = document.getElementById("email").value.trim();
+      const senha = document.getElementById("senha").value;
+      const errorMsg = document.getElementById("errorMsg");
+
       errorMsg.style.display = 'none';
       errorMsg.innerText = '';
 
-      // Pegue os valores dos campos
-      const usuario = document.getElementById('usuario').value.trim();
-      const senha = document.getElementById('senha').value;
-
-      try {
-        // Tente as duas formas de envio, pois o backend pode esperar "usuario/senha" ou "email/password"
-        let res = await fetch('http://localhost:3000/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ usuario, senha })
+      signInWithEmailAndPassword(auth, email, senha)
+        .then(() => {
+          window.location.href = "dashboard.html";
+        })
+        .catch(error => {
+          errorMsg.innerText = "Erro ao fazer login: " + error.message;
+          errorMsg.style.display = "block";
         });
-
-        // Se falhar, tente com email/password
-        if (!res.ok) {
-          res = await fetch('http://localhost:3000/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: usuario, password: senha })
-          });
-        }
-
-        if (!res.ok) {
-          let data = {};
-          try { data = await res.json(); } catch {}
-          errorMsg.innerText = data.error || 'Credenciais inválidas';
-          errorMsg.style.display = 'block';
-          return;
-        }
-
-        const user = await res.json();
-        localStorage.setItem('usuario', JSON.stringify(user));
-        window.location.href = 'dashboard.html';
-      } catch (error) {
-        errorMsg.innerText = 'Erro ao conectar com o servidor.';
-        errorMsg.style.display = 'block';
-        console.error('Erro no fetch login:', error);
-      }
-    });
+    };
   </script>
+</head>
+<body>
+  <form class="formulario-login" id="loginForm" onsubmit="event.preventDefault(); login();">
+    <h2>Sesi Saiba+</h2>
+    <div id="errorMsg" class="error"></div>
+    <input type="text" id="email" placeholder="Email" required />
+    <input type="password" id="senha" placeholder="Senha" required />
+    <button type="submit">Entrar</button>
+  </form>
 </body>
 </html>
-<script>
-  const auth = firebase.auth();
-
-  function login() {
-    const email = document.getElementById("email").value;
-    const senha = document.getElementById("senha").value;
-
-    auth.signInWithEmailAndPassword(email, senha)
-      .then(() => {
-        window.location.href = "dashboard.html";
-      })
-      .catch(error => {
-        alert("Erro ao fazer login: " + error.message);
-      });
-  }
-</script>
