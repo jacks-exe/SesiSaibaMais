@@ -68,6 +68,7 @@
       font-weight: bold;
       transition: background-color 0.3s ease;
       margin-bottom: 20px;
+      display: none; /* inicialmente oculto */
     }
 
     #btnAdicionarMateria:hover {
@@ -128,23 +129,25 @@
     </div>
   </header>
 
-  <button id="btnAdicionarMateria" style="display:none;">Adicionar Matéria</button>
+  <button id="btnAdicionarMateria">Adicionar Matéria</button>
 
   <div id="listaMaterias">Carregando matérias...</div>
 
   <script>
+    // Carregando usuário do localStorage
     const user = JSON.parse(localStorage.getItem('usuario'));
     if (!user) window.location.href = 'index.html';
 
     document.getElementById('userNameEmail').innerText = `${user.nome || user.email}`;
 
-    document.getElementById('btnSair').addEventListener('click', () => {
-      localStorage.removeItem('usuario');
-      window.location.href = 'index.html';
-    });
-
-    const listaMaterias = document.getElementById('listaMaterias');
+    const btnSair = document.getElementById('btnSair');
     const btnAdicionarMateria = document.getElementById('btnAdicionarMateria');
+    const listaMaterias = document.getElementById('listaMaterias');
+
+    btnSair.addEventListener('click', () => {
+      localStorage.removeItem('usuario');
+      // O logout Firebase será tratado abaixo
+    });
 
     if (user.role === 'professor') {
       btnAdicionarMateria.style.display = 'inline-block';
@@ -158,7 +161,7 @@
         })
         .then(materias => {
           listaMaterias.innerHTML = '';
-          materias.forEach((materia, index) => {
+          materias.forEach((materia) => {
             const card = document.createElement('div');
             card.className = 'materia-card';
 
@@ -194,20 +197,54 @@
         },
         body: JSON.stringify({ nome: nomeMateria, role: user.role })
       })
-        .then(res => {
-          if (!res.ok) throw new Error('Erro ao adicionar matéria');
-          return res.json();
-        })
-        .then(() => {
-          listarMaterias();
-        })
-        .catch(err => {
-          alert('Erro ao adicionar matéria.');
-          console.error(err);
-        });
+      .then(res => {
+        if (!res.ok) throw new Error('Erro ao adicionar matéria');
+        return res.json();
+      })
+      .then(() => {
+        listarMaterias();
+      })
+      .catch(err => {
+        alert('Erro ao adicionar matéria.');
+        console.error(err);
+      });
     });
 
     listarMaterias();
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAy6cMYSO-l7tIUgFBtH2cYt2DAC_OBZ1s",
+      authDomain: "sesisaibamais.firebaseapp.com",
+      projectId: "sesisaibamais",
+      storageBucket: "sesisaibamais.appspot.com",
+      messagingSenderId: "425803475445",
+      appId: "1:425803475445:web:cb47c8f9acb328d0a858bc",
+      measurementId: "G-7YGL7YFERM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Verifica se o usuário está logado no Firebase
+    onAuthStateChanged(auth, (userFirebase) => {
+      if (!userFirebase) {
+        window.location.href = "index.html";
+      }
+    });
+
+    // Completa logout no Firebase + localStorage
+    document.getElementById('btnSair').addEventListener('click', () => {
+      signOut(auth).then(() => {
+        window.location.href = 'index.html';
+      }).catch((error) => {
+        console.error('Erro ao sair:', error);
+      });
+    });
   </script>
 
 </body>
