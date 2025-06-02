@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard</title>
   <style>
+    /* ... (mesmo estilo que você enviou) ... */
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
       background: #f4f6fa;
       margin: 0;
     }
-
-    /* Cabeçalho */
     header {
       display: flex;
       justify-content: space-between;
@@ -23,14 +22,12 @@
       border-radius: 8px;
       margin-bottom: 20px;
     }
-
     .site-name {
       font-weight: bold;
       font-size: 1.5rem;
       color: #2c3e50;
       cursor: pointer;
     }
-
     .user-info {
       display: flex;
       align-items: center;
@@ -41,7 +38,6 @@
       font-size: 1rem;
       color: #34495e;
     }
-
     #btnSair {
       background-color: #e74c3c;
       border: none;
@@ -52,11 +48,9 @@
       font-weight: 600;
       transition: background-color 0.3s ease;
     }
-
     #btnSair:hover {
       background-color: #c0392b;
     }
-
     #btnAdicionarMateria {
       background-color: #27ae60;
       color: white;
@@ -68,20 +62,16 @@
       font-weight: bold;
       transition: background-color 0.3s ease;
       margin-bottom: 20px;
-      display: none; /* inicialmente oculto */
+      display: none;
     }
-
     #btnAdicionarMateria:hover {
       background-color: #1e8449;
     }
-
-    /* Conteúdo */
     #listaMaterias {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 15px;
     }
-
     .materia-card {
       background: white;
       border-radius: 8px;
@@ -92,17 +82,14 @@
       align-items: center;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-
     .materia-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 4px 10px rgba(0,0,0,0.15);
     }
-
     .materia-card span {
       font-weight: bold;
       color: #2c3e50;
     }
-
     .materia-card button {
       background-color: #2980b9;
       color: white;
@@ -113,7 +100,6 @@
       font-weight: bold;
       transition: background-color 0.3s ease;
     }
-
     .materia-card button:hover {
       background-color: #1f6391;
     }
@@ -133,86 +119,6 @@
 
   <div id="listaMaterias">Carregando matérias...</div>
 
-  <script>
-    // Carregando usuário do localStorage
-    const user = JSON.parse(localStorage.getItem('usuario'));
-    if (!user) window.location.href = 'index.html';
-
-    document.getElementById('userNameEmail').innerText = `${user.nome || user.email}`;
-
-    const btnSair = document.getElementById('btnSair');
-    const btnAdicionarMateria = document.getElementById('btnAdicionarMateria');
-    const listaMaterias = document.getElementById('listaMaterias');
-
-    btnSair.addEventListener('click', () => {
-      localStorage.removeItem('usuario');
-      // O logout Firebase será tratado abaixo
-    });
-
-    if (user.role === 'professor') {
-      btnAdicionarMateria.style.display = 'inline-block';
-    }
-
-    function listarMaterias() {
-      fetch('http://localhost:3000/materias')
-        .then(res => {
-          if (!res.ok) throw new Error('Erro ao buscar matérias');
-          return res.json();
-        })
-        .then(materias => {
-          listaMaterias.innerHTML = '';
-          materias.forEach((materia) => {
-            const card = document.createElement('div');
-            card.className = 'materia-card';
-
-            const span = document.createElement('span');
-            span.textContent = materia.nome;
-
-            const btnAbrir = document.createElement('button');
-            btnAbrir.textContent = 'Abrir';
-            btnAbrir.addEventListener('click', () => {
-              window.location.href = `atividades.html?materiaId=${materia.id}`;
-            });
-
-            card.appendChild(span);
-            card.appendChild(btnAbrir);
-            listaMaterias.appendChild(card);
-          });
-        })
-        .catch(err => {
-          listaMaterias.innerHTML = 'Erro ao carregar matérias.';
-          console.error(err);
-        });
-    }
-
-    btnAdicionarMateria.addEventListener('click', () => {
-      const nomeMateria = prompt('Digite o nome da nova matéria:');
-      if (!nomeMateria) return;
-
-      fetch('http://localhost:3000/materias', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.token}`
-        },
-        body: JSON.stringify({ nome: nomeMateria, role: user.role })
-      })
-      .then(res => {
-        if (!res.ok) throw new Error('Erro ao adicionar matéria');
-        return res.json();
-      })
-      .then(() => {
-        listarMaterias();
-      })
-      .catch(err => {
-        alert('Erro ao adicionar matéria.');
-        console.error(err);
-      });
-    });
-
-    listarMaterias();
-  </script>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
@@ -230,22 +136,93 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // Verifica se o usuário está logado no Firebase
+    const userNameEmail = document.getElementById('userNameEmail');
+    const btnSair = document.getElementById('btnSair');
+    const btnAdicionarMateria = document.getElementById('btnAdicionarMateria');
+    const listaMaterias = document.getElementById('listaMaterias');
+
+    // Verifica se tem usuário no localStorage e no Firebase, caso contrário redireciona
+    let localUser = JSON.parse(localStorage.getItem('usuario'));
     onAuthStateChanged(auth, (userFirebase) => {
-      if (!userFirebase) {
-        window.location.href = "index.html";
+      if (!userFirebase || !localUser) {
+        localStorage.removeItem('usuario');
+        window.location.href = 'index.html';
+      } else {
+        // Mostra nome/email
+        userNameEmail.textContent = localUser.nome || localUser.email || 'Usuário';
+
+        if(localUser.role === 'professor') {
+          btnAdicionarMateria.style.display = 'inline-block';
+        }
+
+        listarMaterias();
       }
     });
 
-    // Completa logout no Firebase + localStorage
-    document.getElementById('btnSair').addEventListener('click', () => {
+    btnSair.addEventListener('click', () => {
       signOut(auth).then(() => {
+        localStorage.removeItem('usuario');
         window.location.href = 'index.html';
-      }).catch((error) => {
+      }).catch(error => {
         console.error('Erro ao sair:', error);
       });
     });
-  </script>
 
-</body>
+    btnAdicionarMateria.addEventListener('click', () => {
+      const nomeMateria = prompt('Digite o nome da nova matéria:');
+      if (!nomeMateria) return;
+
+      fetch('http://localhost:3000/materias', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localUser.token}`
+        },
+        body: JSON.stringify({ nome: nomeMateria, role: localUser.role })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Erro ao adicionar matéria');
+        return res.json();
+      })
+      .then(() => {
+        listarMaterias();
+      })
+      .catch(err => {
+        alert('Erro ao adicionar matéria.');
+        console.error(err);
+      });
+    });
+
+    function listarMaterias() {
+  fetch('http://localhost:3000/materias', {
+    headers: { 'Authorization': `Bearer ${localUser.token}` }
+  })
+    .then(res => res.json())
+    .then(data => {
+      listaMaterias.innerHTML = '';
+      data.forEach(materia => {
+        const card = document.createElement('div');
+        card.className = 'materia-card';
+
+        const span = document.createElement('span');
+        span.textContent = materia.nome;
+
+        const btnEntrar = document.createElement('button');
+        btnEntrar.textContent = 'Entrar';
+        btnEntrar.addEventListener('click', () => {
+          alert(`Entrando na matéria ${materia.nome} (id: ${materia.id})`);
+        });
+
+        card.appendChild(span);
+        card.appendChild(btnEntrar);
+        listaMaterias.appendChild(card);
+      });
+    })
+    .catch(err => {
+      listaMaterias.innerHTML = 'Erro ao carregar matérias.';
+      console.error(err);
+    });
+}
+  </script> 
+</body> 
 </html>

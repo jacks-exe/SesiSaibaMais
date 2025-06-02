@@ -2,7 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login - Sesi Saiba+</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -13,89 +14,60 @@
       height: 100vh;
       margin: 0;
     }
-    .formulario-login{
-      background:#F3F3F3;
-      margin:auto;
-      width: 50%;
-      max-width:400px;
-      padding:30px;
-      border:1px solid rgba(0,0,0,0.2);
-      border-bottom:5px solid rgba(0, 124, 255);
-      border-radius:15px;
-    }
-    .formulario-login h2 {
+    form {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 300px;
       text-align: center;
-      margin-bottom:20px;
-      color: #007cff;
-      letter-spacing: 1px;
-      font-weight: bold;
     }
-    .formulario-login input{
-      display:block;
-      width:100%;
-      background:#f3f3f3;
-      border:none;
-      margin:30px 0;
-      padding:10px;
-      border-bottom:1px solid rgba(0,0,0,0.2);
-      outline:none;
+    h2 {
+      margin-bottom: 20px;
     }
-    .formulario-login input[type="text"]:focus , .formulario-login input[type="password"]:focus{
-      border-bottom:2px solid rgba(0,0,0,0.9);
-    }
-    .formulario-login input[type="submit"],
-    .formulario-login button {
-      background:rgba(0, 124, 255);
-      opacity:0.9;
-      border:none;
-      border-radius:30px;
-      color:white;
-      font-size:1em;
-      cursor:pointer;
-      padding: 10px;
+    input {
       width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
     }
-    .formulario-login input[type="submit"]:hover,
-    .formulario-login button:hover {
-      opacity:1;
-      transition:.2s;
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #2980b9;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background-color 0.3s ease;
     }
-    .formulario-login input[type="submit"]:active,
-    .formulario-login button:active {
-      transform:scale(0.95);
-    }
-    .formulario-login a{
-      display:block;
-      text-align:center;
-      text-decoration:none;
-      color:rgba(0,0,0,0.5);
-    }
-    .formulario-login a:hover{
-      text-decoration:underline;
-      color:rgba(0,0,0,0.8);
+    button:hover {
+      background-color: #1f6391;
     }
     .error {
-      background: #f8d7da;
-      color: #842029;
-      border: 1px solid #f5c2c7;
-      padding: 0.8rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
+      color: red;
+      margin-bottom: 10px;
       display: none;
-      text-align: center;
-    }
-    @media(max-width:780px){
-      .formulario-login { width:75%; }
-    }
-    @media(max-width:480px){
-      .formulario-login { width:95%; }
     }
   </style>
+</head>
+<body>
 
-  <!-- Firebase SDK -->
+  <form id="loginForm" action="#">
+    <h2>Sesi Saiba+</h2>
+    <div id="errorMsg" class="error"></div>
+    <input type="text" id="usuario" placeholder="Usuário ou Email" required />
+    <input type="password" id="senha" placeholder="Senha" required />
+    <button type="submit">Entrar</button>
+  </form>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAy6cMYSO-l7tIUgFBtH2cYt2DAC_OBZ1s",
@@ -110,32 +82,38 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    window.login = () => {
-      const email = document.getElementById("email").value.trim();
-      const senha = document.getElementById("senha").value;
-      const errorMsg = document.getElementById("errorMsg");
+    const loginForm = document.getElementById('loginForm');
+    const errorMsg = document.getElementById('errorMsg');
 
+    // Se já estiver logado, vai direto para dashboard
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Salva no localStorage (pode ser customizado)
+        localStorage.setItem('usuario', JSON.stringify({ email: user.email, uid: user.uid, nome: user.displayName, role: 'aluno' }));
+        window.location.href = 'dashboard.html';
+      }
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
       errorMsg.style.display = 'none';
-      errorMsg.innerText = '';
+      errorMsg.textContent = '';
 
-      signInWithEmailAndPassword(auth, email, senha)
-        .then(() => {
-          window.location.href = "dashboard.html";
-        })
-        .catch(error => {
-          errorMsg.innerText = "Erro ao fazer login: " + error.message;
-          errorMsg.style.display = "block";
-        });
-    };
+      const emailOrUser = document.getElementById('usuario').value.trim();
+      const senha = document.getElementById('senha').value;
+
+      try {
+        // Aqui você pode adaptar para aceitar "usuario" como email ou outro campo
+        // Firebase auth exige email, então vamos assumir que o input é email
+
+        await signInWithEmailAndPassword(auth, emailOrUser, senha);
+        // onAuthStateChanged vai redirecionar automaticamente após login
+      } catch (error) {
+        errorMsg.textContent = 'Usuário ou senha inválidos.';
+        errorMsg.style.display = 'block';
+        console.error('Erro no login:', error);
+      }
+    });
   </script>
-</head>
-<body>
-  <form class="formulario-login" id="loginForm" onsubmit="event.preventDefault(); login();">
-    <h2>Sesi Saiba+</h2>
-    <div id="errorMsg" class="error"></div>
-    <input type="text" id="email" placeholder="Email" required />
-    <input type="password" id="senha" placeholder="Senha" required />
-    <button type="submit">Entrar</button>
-  </form>
 </body>
 </html>
