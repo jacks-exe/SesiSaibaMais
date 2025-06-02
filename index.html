@@ -66,54 +66,57 @@
   </form>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAy6cMYSO-l7tIUgFBtH2cYt2DAC_OBZ1s",
-      authDomain: "sesisaibamais.firebaseapp.com",
-      projectId: "sesisaibamais",
-      storageBucket: "sesisaibamais.appspot.com",
-      messagingSenderId: "425803475445",
-      appId: "1:425803475445:web:cb47c8f9acb328d0a858bc",
-      measurementId: "G-7YGL7YFERM"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAy6cMYSO-l7tIUgFBtH2cYt2DAC_OBZ1s",
+    authDomain: "sesisaibamais.firebaseapp.com",
+    projectId: "sesisaibamais",
+    storageBucket: "sesisaibamais.appspot.com",
+    messagingSenderId: "425803475445",
+    appId: "1:425803475445:web:cb47c8f9acb328d0a858bc",
+    measurementId: "G-7YGL7YFERM"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-    const loginForm = document.getElementById('loginForm');
-    const errorMsg = document.getElementById('errorMsg');
+  const form = document.getElementById('loginForm');
+  const errorMsg = document.getElementById('errorMsg');
 
-    // Se já estiver logado, vai direto para dashboard
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Salva no localStorage (pode ser customizado)
-        localStorage.setItem('usuario', JSON.stringify({ email: user.email, uid: user.uid, nome: user.displayName, role: 'aluno' }));
-        window.location.href = 'dashboard.html';
-      }
-    });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('usuario').value.trim();
+    const senha = document.getElementById('senha').value;
 
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      errorMsg.style.display = 'none';
-      errorMsg.textContent = '';
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, senha);
+      const user = userCredential.user;
+      const token = await user.getIdToken(); // 🔥 Aqui está o token necessário!
 
-      const emailOrUser = document.getElementById('usuario').value.trim();
-      const senha = document.getElementById('senha').value;
+      // Adapte para buscar o role se quiser (ex: via backend)
+      const usuarioLogado = {
+        email: user.email,
+        uid: user.uid,
+        nome: user.displayName || '',
+        role: 'aluno', // ou 'professor', se conseguir identificar
+        token: token
+      };
 
-      try {
-        // Aqui você pode adaptar para aceitar "usuario" como email ou outro campo
-        // Firebase auth exige email, então vamos assumir que o input é email
-
-        await signInWithEmailAndPassword(auth, emailOrUser, senha);
-        // onAuthStateChanged vai redirecionar automaticamente após login
-      } catch (error) {
-        errorMsg.textContent = 'Usuário ou senha inválidos.';
-        errorMsg.style.display = 'block';
-        console.error('Erro no login:', error);
-      }
-    });
+      localStorage.setItem('usuario', JSON.stringify(usuarioLogado));
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      errorMsg.innerText = 'Erro ao fazer login: ' + err.message;
+      errorMsg.style.display = 'block';
+    }
+  });
+</script>
+  <script>
+    // Redireciona para o dashboard se já estiver logado
+   // if (localStorage.getItem('usuario')) {
+   //   window.location.href = 'dashboard.html';
+   // }
   </script>
 </body>
 </html>

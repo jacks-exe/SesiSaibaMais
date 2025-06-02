@@ -195,8 +195,10 @@
 
     function listarMaterias() {
   fetch('http://localhost:3000/materias', {
-    headers: { 'Authorization': `Bearer ${localUser.token}` }
-  })
+  headers: {
+    'Authorization': `Bearer ${localUser.token}`
+  }
+})
     .then(res => res.json())
     .then(data => {
       listaMaterias.innerHTML = '';
