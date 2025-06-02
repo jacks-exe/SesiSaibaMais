@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Matéria - Tarefas</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f6fa; }
+    button { margin-top: 8px; padding: 8px 12px; cursor: pointer; }
+    #adicionarTarefaBox {
+      margin-top: 20px;
+      background: #f0f6ff;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(59,130,246,0.06);
+      border: 1px solid #e5e7eb;
+      max-width: 500px;
+    }
+    #listaTarefas {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 1.5rem;
+      color: #222;
+    }
+    textarea {
+      min-height: 60px;
+      resize: vertical;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div id="listaTarefas"></div>
+
+  <div id="adicionarTarefaBox" class="hidden">
+    <h3>Adicionar Tarefa</h3>
+    <input id="inputTituloTarefa" type="text" placeholder="Título" /><br />
+    <textarea id="inputDescricaoTarefa" placeholder="Descrição"></textarea><br />
+    <button onclick="adicionarTarefa(
+      document.getElementById('inputTituloTarefa').value,
+      document.getElementById('inputDescricaoTarefa').value
+    )">Adicionar</button>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="tarefas.js"></script>
+  <script>
+    // Mostrar área para adicionar tarefa só para professor
+    window.onload = () => {
+      listarTarefas();
+      const user = JSON.parse(localStorage.getItem('usuario'));
+      if(user && user.role === 'professor') {
+        document.getElementById('adicionarTarefaBox').classList.remove('hidden');
+      }
+    }
+  </script>
+
+</body>
+</html>
