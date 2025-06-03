@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard</title>
   <style>
-    /* ... (mesmo estilo que você enviou) ... */
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
@@ -103,128 +102,216 @@
     .materia-card button:hover {
       background-color: #1f6391;
     }
-  </style>
+    body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #f4f6fa;
+    margin: 0;
+  }
+  form {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  form input, form textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 6px;
+    margin-bottom: 12px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+  form label {
+    font-weight: bold;
+  }
+  form button {
+    background-color: #27ae60;
+    color: white;
+    padding: 10px 18px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  #listaAtividades .atividade-card {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+</style>
 </head>
 <body>
 
-  <header>
-    <div class="site-name" onclick="window.location.href='dashboard.html'">SesiSaiba+</div>
-    <div class="user-info">
-      <span id="userNameEmail">Carregando...</span>
-      <button id="btnSair">Sair</button>
-    </div>
-  </header>
+<h2>Adicionar nova atividade</h2>
+<form id="formAtividade">
+  <label for="titulo">Título *</label>
+  <input type="text" id="titulo" required />
 
-  <button id="btnAdicionarMateria">Adicionar Matéria</button>
+  <label for="descricao">Descrição</label>
+  <textarea id="descricao"></textarea>
 
-  <div id="listaMaterias">Carregando matérias...</div>
+  <label for="imagemInput">Imagem</label>
+  <input type="file" id="imagemInput" accept="image/*" />
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+  <label for="links">Links (separados por vírgula)</label>
+  <input type="text" id="links" placeholder="https://exemplo.com, https://outro.com" />
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAy6cMYSO-l7tIUgFBtH2cYt2DAC_OBZ1s",
-      authDomain: "sesisaibamais.firebaseapp.com",
-      projectId: "sesisaibamais",
-      storageBucket: "sesisaibamais.appspot.com",
-      messagingSenderId: "425803475445",
-      appId: "1:425803475445:web:cb47c8f9acb328d0a858bc",
-      measurementId: "G-7YGL7YFERM"
+  <label for="dataPostada">Data Postada *</label>
+  <input type="date" id="dataPostada" required />
+
+  <label for="dataDisponivelAte">Data Disponível Até *</label>
+  <input type="date" id="dataDisponivelAte" required />
+
+  <label><input type="checkbox" id="valeNota" /> Vale nota</label>
+
+  <label for="nota">Nota (se vale nota)</label>
+  <input type="number" id="nota" min="0" max="10" step="0.1" />
+
+  <button type="submit">Adicionar Atividade</button>
+</form>
+
+<h2>Atividades</h2>
+<div id="listaAtividades">Carregando atividades...</div>
+
+<script>
+  // Coloque sua API key do ImgBB aqui:
+  const apiKeyImgBB = '4f547bbb2b30d445bebc01bda7ea2510';
+
+  // Pegue o id da matéria atual da URL, ex: atividades.html?materiaId=1
+  const urlParams = new URLSearchParams(window.location.search);
+  const materiaId = urlParams.get('materiaId');
+
+  const localUser = JSON.parse(localStorage.getItem('usuario'));
+
+  const formAtividade = document.getElementById('formAtividade');
+  const listaAtividades = document.getElementById('listaAtividades');
+
+  async function uploadImagemParaImgBB(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKeyImgBB}`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+    if(data.success) {
+      return data.data.url;
+    } else {
+      throw new Error('Falha no upload da imagem');
+    }
+  }
+
+  function mostrarAtividades(atividades) {
+    if(!atividades || atividades.length === 0) {
+      listaAtividades.textContent = 'Nenhuma atividade cadastrada.';
+      return;
+    }
+
+    listaAtividades.innerHTML = '';
+
+    atividades.forEach(atividade => {
+      const card = document.createElement('div');
+      card.className = 'atividade-card';
+
+      card.innerHTML = `
+        <h3>${atividade.titulo}</h3>
+        <p>${atividade.descricao || ''}</p>
+        ${atividade.arquivo ? `<img src="${atividade.arquivo}" alt="Imagem da atividade" style="max-width: 100%; height: auto;" />` : ''}
+        ${atividade.links && atividade.links.length > 0 ? `<p>Links: ${atividade.links.map(l => `<a href="${l}" target="_blank">${l}</a>`).join(', ')}</p>` : ''}
+        <p>Postada em: ${atividade.dataPostada}</p>
+        <p>Disponível até: ${atividade.dataDisponivelAte}</p>
+        <p>Vale nota: ${atividade.valeNota ? 'Sim' : 'Não'}</p>
+        ${atividade.valeNota ? `<p>Nota: ${atividade.nota}</p>` : ''}
+      `;
+
+      listaAtividades.appendChild(card);
+    });
+  }
+
+  async function carregarAtividades() {
+    try {
+      const res = await fetch(`http://localhost:3000/materias/${materiaId}`, {
+        headers: {
+          'Authorization': `Bearer ${localUser.token}`
+        }
+      });
+      if(!res.ok) throw new Error('Erro ao carregar matéria');
+      const materia = await res.json();
+      mostrarAtividades(materia.atividades);
+    } catch (err) {
+      listaAtividades.textContent = 'Erro ao carregar atividades.';
+      console.error(err);
+    }
+  }
+
+  formAtividade.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const titulo = document.getElementById('titulo').value.trim();
+    const descricao = document.getElementById('descricao').value.trim();
+    const imagemInput = document.getElementById('imagemInput');
+    const linksRaw = document.getElementById('links').value.trim();
+    const dataPostada = document.getElementById('dataPostada').value;
+    const dataDisponivelAte = document.getElementById('dataDisponivelAte').value;
+    const valeNota = document.getElementById('valeNota').checked;
+    const nota = document.getElementById('nota').value;
+
+    let urlImagem = '';
+    if(imagemInput.files.length > 0) {
+      try {
+        urlImagem = await uploadImagemParaImgBB(imagemInput.files[0]);
+        console.log('Imagem hospedada em:', urlImagem);
+      } catch (error) {
+        alert('Erro ao enviar imagem para o ImgBB');
+        return;
+      }
+    }
+
+    const links = linksRaw ? linksRaw.split(',').map(link => link.trim()) : [];
+
+    const atividade = {
+      titulo,
+      descricao,
+      arquivo: urlImagem,
+      links,
+      dataPostada,
+      dataDisponivelAte,
+      valeNota,
+      nota: valeNota ? nota : null,
+      comentarios: []
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    const userNameEmail = document.getElementById('userNameEmail');
-    const btnSair = document.getElementById('btnSair');
-    const btnAdicionarMateria = document.getElementById('btnAdicionarMateria');
-    const listaMaterias = document.getElementById('listaMaterias');
-
-    // Verifica se tem usuário no localStorage e no Firebase, caso contrário redireciona
-    let localUser = JSON.parse(localStorage.getItem('usuario'));
-    onAuthStateChanged(auth, (userFirebase) => {
-      if (!userFirebase || !localUser) {
-        localStorage.removeItem('usuario');
-        window.location.href = 'index.html';
-      } else {
-        // Mostra nome/email
-        userNameEmail.textContent = localUser.nome || localUser.email || 'Usuário';
-
-        if(localUser.role === 'professor') {
-          btnAdicionarMateria.style.display = 'inline-block';
-        }
-
-        listarMaterias();
-      }
-    });
-
-    btnSair.addEventListener('click', () => {
-      signOut(auth).then(() => {
-        localStorage.removeItem('usuario');
-        window.location.href = 'index.html';
-      }).catch(error => {
-        console.error('Erro ao sair:', error);
-      });
-    });
-
-    btnAdicionarMateria.addEventListener('click', () => {
-      const nomeMateria = prompt('Digite o nome da nova matéria:');
-      if (!nomeMateria) return;
-
-      fetch('http://localhost:3000/materias', {
+    try {
+      const res = await fetch(`http://localhost:3000/materias/${materiaId}/atividades`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localUser.token}`
         },
-        body: JSON.stringify({ nome: nomeMateria, role: localUser.role })
-      })
-      .then(res => {
-        if (!res.ok) throw new Error('Erro ao adicionar matéria');
-        return res.json();
-      })
-      .then(() => {
-        listarMaterias();
-      })
-      .catch(err => {
-        alert('Erro ao adicionar matéria.');
-        console.error(err);
+        body: JSON.stringify(atividade)
       });
-    });
+      if(!res.ok) throw new Error('Erro ao salvar atividade');
 
-    function listarMaterias() {
-  fetch('http://localhost:3000/materias', {
-  headers: {
-    'Authorization': `Bearer ${localUser.token}`
-  }
-})
-    .then(res => res.json())
-    .then(data => {
-      listaMaterias.innerHTML = '';
-      data.forEach(materia => {
-        const card = document.createElement('div');
-        card.className = 'materia-card';
-
-        const span = document.createElement('span');
-        span.textContent = materia.nome;
-
-        const btnEntrar = document.createElement('button');
-        btnEntrar.textContent = 'Entrar';
-        btnEntrar.addEventListener('click', () => {
-          alert(`Entrando na matéria ${materia.nome} (id: ${materia.id})`);
-        });
-
-        card.appendChild(span);
-        card.appendChild(btnEntrar);
-        listaMaterias.appendChild(card);
-      });
-    })
-    .catch(err => {
-      listaMaterias.innerHTML = 'Erro ao carregar matérias.';
+      alert('Atividade adicionada com sucesso!');
+      formAtividade.reset();
+      carregarAtividades();
+    } catch(err) {
+      alert('Erro ao salvar atividade');
       console.error(err);
-    });
-}
-  </script> 
-</body> 
+    }
+  });
+
+  carregarAtividades();
+</script>
+
+</body>
 </html>
+  
