@@ -545,7 +545,31 @@
       text-align: right;
       min-height: 18px;
     }
+
+    /* Novas classes para matérias e atividades */
+    #materiasAtividadesContainer {
+      margin-top: 20px;
+    }
+    .materia-area {
+      margin-bottom: 24px;
+      padding: 16px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .materia-area h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1.25rem;
+      color: #2c3e50;
+    }
+    .atividades-list {
+      padding: 10px 0;
+    }
   </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -578,7 +602,7 @@
     <span class="texto">Adicionar</span>
   </button>
 
-  <div id="atividadesList">Carregando atividades...</div>
+  <div id="materiasAtividadesContainer">Carregando matérias...</div>
 
   <!-- Pop-up de exclusão de atividade -->
   <div id="popupExcluirOverlay">
@@ -686,15 +710,73 @@
   </div>
 
   <script>
+    // Configuração do Firebase
+    const firebaseConfig = {
+      // ...adicione sua configuração do Firebase aqui...
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     const user = JSON.parse(localStorage.getItem('usuario'));
     if (!user) window.location.href = 'index.html';
 
     const params = new URLSearchParams(window.location.search);
-    const materiaId = params.get('materiaId');
-    if (!materiaId) {
-      alert('Matéria inválida!');
-      window.location.href = 'dashboard.html';
+    const materiaIdSelecionada = params.get('materiaId');
+    const materiasAtividadesContainer = document.getElementById('materiasAtividadesContainer');
+
+    async function carregarMateriasEAtividades() {
+      try {
+        const snapshot = await db.collection('materias').get();
+        const materias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        if (!materias.length) {
+          materiasAtividadesContainer.textContent = 'Nenhuma matéria cadastrada.';
+          return;
+        }
+
+        materiasAtividadesContainer.innerHTML = '';
+        materias.forEach(materia => {
+          // Só mostra a subárea da matéria selecionada
+          if (materia.id !== materiaIdSelecionada) return;
+
+          const area = document.createElement('div');
+          area.className = 'materia-area';
+          area.innerHTML = `<h3>${materia.nome}</h3><div class="atividades-list" id="atividadesList_${materia.id}">Carregando atividades...</div>`;
+          materiasAtividadesContainer.appendChild(area);
+
+          // Carregar atividades da matéria
+          db.collection('materias').doc(materia.id).collection('atividades').get().then(snapshot => {
+            const atividades = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const atividadesList = document.getElementById(`atividadesList_${materia.id}`);
+            if (!atividades.length) {
+              atividadesList.textContent = 'Nenhuma atividade cadastrada.';
+              return;
+            }
+            atividadesList.innerHTML = '';
+            atividades.forEach(atividade => {
+              const div = document.createElement('div');
+              div.className = 'atividade';
+              div.innerHTML = `<b>${atividade.titulo}</b><br>${atividade.descricao || ''}`;
+              atividadesList.appendChild(div);
+            });
+          });
+        });
+      } catch (err) {
+        materiasAtividadesContainer.textContent = 'Erro ao carregar matérias.';
+        console.error(err);
+      }
     }
+
+    carregarMateriasEAtividades();
+
+    // Adicionar atividade (exemplo simplificado, adapte para seu formulário/modal)
+    async function adicionarAtividade(materiaId, atividade) {
+      await db.collection('materias').doc(materiaId).collection('atividades').add(atividade);
+      carregarMateriasEAtividades();
+    }
+
+    // Exemplo de uso:
+    // adicionarAtividade(materiaIdSelecionada, { titulo: 'Nova Atividade', descricao: 'Descrição...' });
 
     document.getElementById('userNameEmail').innerText = `${user.nome || user.email}`;
 

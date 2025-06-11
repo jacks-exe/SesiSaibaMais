@@ -145,69 +145,54 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
   </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-<h2>Atividades</h2>
-<div id="listaAtividades">Carregando atividades...</div>
+<h2>Matérias</h2>
+<div id="listaMaterias">Carregando matérias...</div>
 
 <script>
-  // Coloque sua API key do ImgBB aqui:
-  const apiKeyImgBB = '4f547bbb2b30d445bebc01bda7ea2510';
+  // Configuração do Firebase
+  const firebaseConfig = {
+    // ...adicione sua configuração do Firebase aqui...
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-  // Pegue o id da matéria atual da URL, ex: atividades.html?materiaId=1
-  const urlParams = new URLSearchParams(window.location.search);
-  const materiaId = urlParams.get('materiaId');
+  const listaMaterias = document.getElementById('listaMaterias');
 
-  const localUser = JSON.parse(localStorage.getItem('usuario'));
-
-  const listaAtividades = document.getElementById('listaAtividades');
-
-  function mostrarAtividades(atividades) {
-    if(!atividades || atividades.length === 0) {
-      listaAtividades.textContent = 'Nenhuma atividade cadastrada.';
+  function renderMaterias(materias) {
+    if (!materias.length) {
+      listaMaterias.textContent = 'Nenhuma matéria cadastrada.';
       return;
     }
-
-    listaAtividades.innerHTML = '';
-
-    atividades.forEach(atividade => {
+    listaMaterias.innerHTML = '';
+    materias.forEach(materia => {
       const card = document.createElement('div');
-      card.className = 'atividade-card';
-
-      card.innerHTML = `
-        <h3>${atividade.titulo}</h3>
-        <p>${atividade.descricao || ''}</p>
-        ${atividade.arquivo ? `<img src="${atividade.arquivo}" alt="Imagem da atividade" style="max-width: 100%; height: auto;" />` : ''}
-        ${atividade.links && atividade.links.length > 0 ? `<p>Links: ${atividade.links.map(l => `<a href="${l}" target="_blank">${l}</a>`).join(', ')}</p>` : ''}
-        <p>Postada em: ${atividade.dataPostada}</p>
-        <p>Disponível até: ${atividade.dataDisponivelAte}</p>
-        <p>Vale nota: ${atividade.valeNota ? 'Sim' : 'Não'}</p>
-        ${atividade.valeNota ? `<p>Nota: ${atividade.nota}</p>` : ''}
-      `;
-
-      listaAtividades.appendChild(card);
+      card.className = 'materia-card';
+      card.innerHTML = `<span>${materia.nome}</span>`;
+      card.addEventListener('click', () => {
+        window.location.href = `atividades.html?materiaId=${materia.id}`;
+      });
+      listaMaterias.appendChild(card);
     });
   }
 
-  async function carregarAtividades() {
+  async function carregarMaterias() {
     try {
-      const res = await fetch(`http://localhost:3000/materias/${materiaId}`, {
-        headers: {
-          'Authorization': `Bearer ${localUser.token}`
-        }
-      });
-      if(!res.ok) throw new Error('Erro ao carregar matéria');
-      const materia = await res.json();
-      mostrarAtividades(materia.atividades);
+      const snapshot = await db.collection('materias').get();
+      const materias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderMaterias(materias);
     } catch (err) {
-      listaAtividades.textContent = 'Erro ao carregar atividades.';
+      listaMaterias.textContent = 'Erro ao carregar matérias.';
       console.error(err);
     }
   }
 
-  carregarAtividades();
+  carregarMaterias();
 </script>
-
 </body>
 </html>
