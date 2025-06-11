@@ -12,14 +12,14 @@ app.use(cors());
 app.use(express.json());
 
 // Servir frontend (ajuste o caminho conforme sua estrutura)
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(path.join(__dirname, '../')));
 
 // Servir uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rota raiz serve index.html
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  res.sendFile(path.join(__dirname, '../index.html'));
 });
 
 const users = [
