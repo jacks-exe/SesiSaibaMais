@@ -144,37 +144,9 @@
     margin-bottom: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
-</style>
+  </style>
 </head>
 <body>
-
-<h2>Adicionar nova atividade</h2>
-<form id="formAtividade">
-  <label for="titulo">Título *</label>
-  <input type="text" id="titulo" required />
-
-  <label for="descricao">Descrição</label>
-  <textarea id="descricao"></textarea>
-
-  <label for="imagemInput">Imagem</label>
-  <input type="file" id="imagemInput" accept="image/*" />
-
-  <label for="links">Links (separados por vírgula)</label>
-  <input type="text" id="links" placeholder="https://exemplo.com, https://outro.com" />
-
-  <label for="dataPostada">Data Postada *</label>
-  <input type="date" id="dataPostada" required />
-
-  <label for="dataDisponivelAte">Data Disponível Até *</label>
-  <input type="date" id="dataDisponivelAte" required />
-
-  <label><input type="checkbox" id="valeNota" /> Vale nota</label>
-
-  <label for="nota">Nota (se vale nota)</label>
-  <input type="number" id="nota" min="0" max="10" step="0.1" />
-
-  <button type="submit">Adicionar Atividade</button>
-</form>
 
 <h2>Atividades</h2>
 <div id="listaAtividades">Carregando atividades...</div>
@@ -189,25 +161,7 @@
 
   const localUser = JSON.parse(localStorage.getItem('usuario'));
 
-  const formAtividade = document.getElementById('formAtividade');
   const listaAtividades = document.getElementById('listaAtividades');
-
-  async function uploadImagemParaImgBB(file) {
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKeyImgBB}`, {
-      method: 'POST',
-      body: formData
-    });
-
-    const data = await res.json();
-    if(data.success) {
-      return data.data.url;
-    } else {
-      throw new Error('Falha no upload da imagem');
-    }
-  }
 
   function mostrarAtividades(atividades) {
     if(!atividades || atividades.length === 0) {
@@ -252,66 +206,8 @@
     }
   }
 
-  formAtividade.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const titulo = document.getElementById('titulo').value.trim();
-    const descricao = document.getElementById('descricao').value.trim();
-    const imagemInput = document.getElementById('imagemInput');
-    const linksRaw = document.getElementById('links').value.trim();
-    const dataPostada = document.getElementById('dataPostada').value;
-    const dataDisponivelAte = document.getElementById('dataDisponivelAte').value;
-    const valeNota = document.getElementById('valeNota').checked;
-    const nota = document.getElementById('nota').value;
-
-    let urlImagem = '';
-    if(imagemInput.files.length > 0) {
-      try {
-        urlImagem = await uploadImagemParaImgBB(imagemInput.files[0]);
-        console.log('Imagem hospedada em:', urlImagem);
-      } catch (error) {
-        alert('Erro ao enviar imagem para o ImgBB');
-        return;
-      }
-    }
-
-    const links = linksRaw ? linksRaw.split(',').map(link => link.trim()) : [];
-
-    const atividade = {
-      titulo,
-      descricao,
-      arquivo: urlImagem,
-      links,
-      dataPostada,
-      dataDisponivelAte,
-      valeNota,
-      nota: valeNota ? nota : null,
-      comentarios: []
-    };
-
-    try {
-      const res = await fetch(`http://localhost:3000/materias/${materiaId}/atividades`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localUser.token}`
-        },
-        body: JSON.stringify(atividade)
-      });
-      if(!res.ok) throw new Error('Erro ao salvar atividade');
-
-      alert('Atividade adicionada com sucesso!');
-      formAtividade.reset();
-      carregarAtividades();
-    } catch(err) {
-      alert('Erro ao salvar atividade');
-      console.error(err);
-    }
-  });
-
   carregarAtividades();
 </script>
 
 </body>
 </html>
-  
